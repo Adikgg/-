@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Мои игры</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .game {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      font-size: 32px;
+      text-align: center;
+      line-height: 100px;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎮 Мои мини-игры</h1>
+
+<div class="game" id="guessGame">
+  <h2>Угадай число</h2>
+  <p>Угадай число от 1 до 10</p>
+  <input type="number" id="guessInput" min="1" max="10">
+  <button onclick="checkGuess()">Проверить</button>
+  <p id="guessResult"></p>
+</div>
+
+<div class="game" id="clickerGame">
+  <h2>Кликер</h2>
+  <p>Нажми как можно больше раз!</p>
+  <button onclick="incrementClick()">Клик!</button>
+  <p>Счёт: <span id="clickCount">0</span></p>
+</div>
+
+<div class="game" id="tttGame">
+  <h2>Крестики-нолики (против ИИ)</h2>
+  <p id="tttStatus">Ты играешь за X</p>
+  <div class="board" id="board"></div>
+  <button onclick="resetGame()">Сбросить</button>
+</div>
+
+<script>
+  // Угадай число
+  let secret = Math.floor(Math.random() * 10) + 1;
+  function checkGuess() {
+    const input = document.getElementById('guessInput').value;
+    const result = document.getElementById('guessResult');
+    if (parseInt(input) === secret) {
+      result.textContent = "🎉 Правильно! Число было " + secret;
+      secret = Math.floor(Math.random() * 10) + 1;
+    } else {
+      result.textContent = "❌ Нет, попробуй ещё!";
+    }
+  }
+
+  // Кликер
+  let count = 0;
+  function incrementClick() {
+    count++;
+    document.getElementById('clickCount').textContent = count;
+  }
+
+  // Крестики-нолики
+  const board = Array(9).fill("");
+  const boardDiv = document.getElementById("board");
+  const status = document.getElementById("tttStatus");
+
+  function drawBoard() {
+    boardDiv.innerHTML = "";
+    board.forEach((val, i) => {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = val;
+      cell.onclick = () => playerMove(i);
+      boardDiv.appendChild(cell);
+    });
+  }
+
+  function playerMove(i) {
+    if (board[i] !== "" || checkWinner()) return;
+    board[i] = "X";
+    drawBoard();
+    if (!checkWinner()) setTimeout(aiMove, 500);
+  }
+
+  function aiMove() {
+    let empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+    if (empty.length === 0) return;
+    const move = empty[Math.floor(Math.random() * empty.length)];
+    board[move] = "O";
+    drawBoard();
+    checkWinner();
+  }
+
+  function checkWinner() {
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    for (let combo of wins) {
+      const [a, b, c] = combo;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        status.textContent = board[a] + " победил!";
+        return true;
+      }
+    }
+    if (!board.includes("")) {
+      status.textContent = "Ничья!";
+      return true;
+    }
+    return false;
+  }
+
+  function resetGame() {
+    for (let i = 0; i < 9; i++) board[i] = "";
+    status.textContent = "Ты играешь за X";
+    drawBoard();
+  }
+
+  drawBoard();
+</script>
+
+</body>
+</html>
